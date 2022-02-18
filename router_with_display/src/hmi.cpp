@@ -6,7 +6,7 @@
 static const uint16_t screenWidth = 320;
 static const uint16_t screenHeight = 240;
 
-static lv_disp_buf_t draw_buf;
+static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * 10];
 
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
@@ -39,108 +39,131 @@ void createHMI()
 
   static lv_style_t timeStyle;
   static lv_style_t dateStyle;
-  static lv_style_t valueStyle;
   static lv_style_t borderless;
-  static lv_style_t pressureStyle;
+  static lv_style_t statusbar;
+  static lv_style_t base;
+
   lv_style_init(&timeStyle);
   lv_style_init(&dateStyle);
   lv_style_init(&borderless);
-  lv_style_init(&pressureStyle);
-  lv_style_init(&valueStyle);
-  lv_style_set_text_font(&timeStyle, LV_STATE_DEFAULT, &lv_font_montserrat_48);
-  lv_style_set_text_font(&dateStyle, LV_STATE_DEFAULT, &lv_font_montserrat_20);
-  lv_style_set_text_font(&valueStyle, LV_STATE_DEFAULT, &lv_font_montserrat_30);
-  lv_style_set_border_width(&borderless, LV_STATE_DEFAULT, 0);
-  lv_style_set_radius(&borderless, LV_STATE_DEFAULT, 0);
-  lv_style_set_text_font(&pressureStyle, LV_STATE_DEFAULT, &lv_font_montserrat_24);
+  lv_style_init(&statusbar);
+  lv_style_init(&base);
+
+  lv_style_set_text_font(&timeStyle, &heebo_thin_48);
+  lv_style_set_text_align(&timeStyle, LV_TEXT_ALIGN_RIGHT);
+  lv_style_set_align(&timeStyle, LV_ALIGN_RIGHT_MID);
+  lv_style_set_pad_all(&timeStyle, 1);
+
+  lv_style_set_text_font(&dateStyle, &heebo_thin_24);
+  lv_style_set_text_align(&dateStyle, LV_TEXT_ALIGN_RIGHT);
+  lv_style_set_pad_all(&dateStyle, 1);
+
+  lv_style_set_border_width(&borderless, 0);
+  lv_style_set_radius(&borderless, 0);
+
+  lv_style_set_pad_all(&statusbar, 0);
+  lv_style_set_bg_color(&statusbar, lv_color_hex(0x696969));
+  // lv_style_set_bg_opa(&statusbar, LV_OPA_TRANSP);
+
+  lv_style_set_pad_all(&base, 0);
+  // lv_style_set_pad_row(&base, 0);
+  // lv_style_set_pad_column(&base, 0);
+  lv_style_set_bg_color(&base, lv_color_hex(0x696969));
+
+  lv_style_set_pad_column(&timeStyle, 0);
+  lv_style_set_pad_row(&timeStyle, 0);
+  lv_style_set_align(&timeStyle, LV_ALIGN_BOTTOM_RIGHT);
+  lv_style_set_bg_opa(&timeStyle, LV_OPA_TRANSP);
+  lv_style_set_border_side(&timeStyle, LV_BORDER_SIDE_RIGHT);
+  lv_style_set_border_width(&timeStyle, 2);
+  lv_style_set_border_color(&timeStyle, lv_color_hex(0xebe8e1));
+  lv_style_set_border_opa(&timeStyle, LV_OPA_100);
 
   lv_obj_t *scr = lv_scr_act();
-  lv_obj_clean_style_list(scr, LV_OBJ_PART_MAIN);
-  lv_obj_set_style_local_bg_opa(scr, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
-  lv_obj_set_style_local_bg_color(scr, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_obj_set_size(scr, VER, HOR);
+  lv_obj_set_layout(scr, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(scr, LV_FLEX_FLOW_COLUMN);
+  lv_obj_add_style(scr, &base, 0);
+  lv_obj_add_style(scr, &borderless, 0);
 
-  lv_obj_t *apiView = lv_obj_create(scr, NULL);
-  lv_obj_add_style(apiView, LV_OBJ_PART_MAIN, &borderless);
-  lv_obj_set_size(apiView, VER / 2, HOR * 2 / 3);
-  lv_obj_t *icon = lv_img_create(apiView, NULL);
-  lv_obj_set_pos(icon, (VER / 2) * .25, 10);
-  lv_img_set_src(icon, "/spiffs/100.png");
+  lv_obj_t *topStatus = lv_obj_create(scr);
+  lv_obj_add_style(topStatus, &statusbar, 0);
+  lv_obj_add_style(topStatus, &borderless, 0);
+  lv_obj_set_size(topStatus, VER, HOR / 10);
+  lv_obj_set_flex_flow(topStatus, LV_FLEX_FLOW_COLUMN);
+  lv_obj_t *wifiStatus = lv_label_create(topStatus);
+  lv_label_set_text(wifiStatus, LV_SYMBOL_WIFI);
 
-  lv_obj_t *weatherView = lv_obj_create(scr, NULL);
-  lv_obj_add_style(weatherView, LV_OBJ_PART_MAIN, &borderless);
-  lv_obj_set_size(weatherView, VER / 2, HOR * 3 / 3);
-  lv_obj_set_pos(weatherView, VER / 2, 0);
+  lv_obj_t *middle = lv_obj_create(scr);
+  lv_obj_set_layout(middle, LV_LAYOUT_FLEX);
+  lv_obj_set_flex_flow(middle, LV_FLEX_FLOW_ROW);
+  lv_obj_add_style(middle, &borderless, 0);
+  lv_obj_set_style_bg_opa(middle, LV_OPA_TRANSP, 0);
+  lv_obj_set_scrollbar_mode(middle, LV_SCROLLBAR_MODE_OFF);
+  lv_obj_set_width(middle, VER);
+  lv_obj_set_height(middle, LV_PCT(82));
 
-  lv_obj_t *clockView = lv_obj_create(scr, NULL);
-  lv_obj_set_size(clockView, VER / 2, HOR * 1 / 3);
-  lv_obj_add_style(clockView, LV_OBJ_PART_MAIN, &borderless);
-  lv_obj_set_y(clockView, HOR * 2 / 3);
+  lv_obj_t *clockView = lv_obj_create(middle);
+  lv_obj_set_layout(clockView, LV_LAYOUT_FLEX);
+  lv_obj_set_scrollbar_mode(clockView, LV_SCROLLBAR_MODE_OFF);
+  lv_obj_set_flex_flow(clockView, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_width(clockView, VER / 2);
+  lv_obj_set_height(clockView, LV_PCT(100));
 
-  clockLabel = lv_label_create(clockView, NULL);
-  lv_obj_align(clockLabel, NULL, LV_ALIGN_CENTER, 0, -10);
-  lv_label_set_align(clockLabel, LV_LABEL_ALIGN_CENTER);
-  lv_obj_add_style(clockLabel, LV_LABEL_PART_MAIN, &timeStyle);
-  lv_obj_set_auto_realign(clockLabel, true);
+  lv_obj_add_style(clockView, &borderless, 0);
+  lv_obj_add_style(clockView, &timeStyle, 0);
 
-  dateLabel = lv_label_create(clockView, NULL);
-  lv_obj_align(dateLabel, NULL, LV_ALIGN_CENTER, 0, 21);
-  lv_obj_set_auto_realign(dateLabel, true);
-  lv_label_set_align(dateLabel, LV_LABEL_ALIGN_CENTER);
-  lv_obj_add_style(dateLabel, LV_LABEL_PART_MAIN, &dateStyle);
+  clockLabel = lv_label_create(clockView);
+  // lv_obj_set_width(clockLabel, VER * .40);
+  lv_obj_set_align(clockLabel, LV_ALIGN_RIGHT_MID);
+  lv_obj_set_flex_grow(clockLabel, 0);
+  lv_obj_set_width(clockLabel, LV_PCT(100));
 
-  tempLabelIn = lv_label_create(weatherView, NULL);
-  lv_obj_set_auto_realign(tempLabelIn, true);
-  lv_obj_align(tempLabelIn, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 4);
-  lv_label_set_text_fmt(tempLabelIn, "%0.2f °C", 24.123);
-  lv_obj_add_style(tempLabelIn, LV_LABEL_PART_MAIN, &valueStyle);
+  dateLabel = lv_label_create(clockView);
+  lv_obj_set_align(dateLabel, LV_ALIGN_RIGHT_MID);
+  lv_obj_add_style(dateLabel, &dateStyle, 0);
+  lv_obj_set_width(dateLabel, LV_PCT(100));
 
-  humiLabelIn = lv_label_create(weatherView, NULL);
-  lv_obj_set_auto_realign(humiLabelIn, true);
-  lv_obj_align(humiLabelIn, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 34);
+  tempLabelIn = lv_label_create(clockView);
+  lv_label_set_text_fmt(tempLabelIn, "%0.1f°C/%0.1f%%", 24.123, 24.23);
+  lv_obj_add_style(tempLabelIn, &dateStyle, 0);
+  lv_obj_set_width(tempLabelIn, LV_PCT(100));
+
+  /*humiLabelIn = lv_label_create(clockView);
   lv_label_set_text_fmt(humiLabelIn, "%0.2f  %%", 24.123);
-  lv_obj_add_style(humiLabelIn, LV_LABEL_PART_MAIN, &valueStyle);
+  lv_obj_add_style(humiLabelIn, &dateStyle, 0);*/
 
-  pressLabel = lv_label_create(weatherView, NULL);
-  lv_obj_set_auto_realign(pressLabel, true);
-  lv_obj_align(pressLabel, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 100);
-  lv_label_set_text_fmt(pressLabel, "%0.1f hPa", 1024.123);
-  lv_obj_add_style(pressLabel, LV_LABEL_PART_MAIN, &pressureStyle);
+  lv_obj_t *apiView = lv_obj_create(middle);
+  lv_obj_set_style_bg_opa(apiView, LV_OPA_TRANSP, 0);
+  lv_obj_add_style(apiView, &borderless, 0);
+  lv_obj_set_width(apiView, VER / 2);
 
-  tempLabelOut = lv_label_create(weatherView, NULL);
-  lv_obj_set_auto_realign(tempLabelOut, true);
-  lv_obj_align(tempLabelOut, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 170);
-  lv_label_set_text_fmt(tempLabelOut, "%0.2f °C", 24.123);
-  lv_obj_add_style(tempLabelOut, LV_LABEL_PART_MAIN, &valueStyle);
+  lv_obj_t *icon = lv_img_create(apiView);
+  lv_obj_set_align(icon, LV_ALIGN_TOP_MID);
+  lv_img_set_src(icon, "A:/100.png");
 
-  humiLabelOut = lv_label_create(weatherView, NULL);
-  lv_obj_set_auto_realign(humiLabelOut, true);
-  lv_obj_align(humiLabelOut, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 200);
-  lv_label_set_text_fmt(humiLabelOut, "%0.2f  %%", 24.123);
-  lv_obj_add_style(humiLabelOut, LV_LABEL_PART_MAIN, &valueStyle);
+  /*
+
+    pressLabel = lv_label_create(weatherView);
+    // lv_obj_set_auto_realign(pressLabel, true);
+    lv_obj_align(pressLabel, LV_ALIGN_TOP_RIGHT, -20, 100);
+    lv_label_set_text_fmt(pressLabel, "%0.1f hPa", 1024.123);
+    lv_obj_add_style(pressLabel, &pressureStyle, 0);
+
+    tempLabelOut = lv_label_create(weatherView);
+    // lv_obj_set_auto_realign(tempLabelOut, true);
+    lv_obj_align(tempLabelOut, LV_ALIGN_TOP_RIGHT, -20, 170);
+    lv_label_set_text_fmt(tempLabelOut, "%0.2f °C", 24.123);
+    lv_obj_add_style(tempLabelOut, &valueStyle, 0);
+
+    humiLabelOut = lv_label_create(weatherView);
+    // lv_obj_set_auto_realign(humiLabelOut, true);
+    lv_obj_align(humiLabelOut, LV_ALIGN_TOP_RIGHT, -20, 200);
+    lv_label_set_text_fmt(humiLabelOut, "%0.2f  %%", 24.123);
+    lv_obj_add_style(humiLabelOut, &valueStyle, 0);
+    */
 }
-void listDir()
-{
-  lv_fs_dir_t dir;
-  lv_fs_res_t res;
 
-  res = lv_fs_dir_open(&dir, "L:/");
-  char fn[256];
-  while (1)
-  {
-    res = lv_fs_dir_read(&dir, fn);
-    if (res != LV_FS_RES_OK)
-    {
-      break;
-    }
-    if (strlen(fn) == 0)
-    {
-      break;
-    }
-    Serial.printf("%s\n", fn);
-  }
-  lv_fs_dir_close(&dir);
-}
 void updateTime()
 {
   time_t now;
@@ -158,43 +181,39 @@ void updateTime()
 
 void updateIndoorValues(float pressure, float temperature, float humidity)
 {
-  lv_label_set_text_fmt(humiLabelIn, "%0.2f  %%", humidity);
-  lv_label_set_text_fmt(tempLabelIn, "%0.2f °C", temperature);
-  lv_label_set_text_fmt(pressLabel, "%0.1f hPa", pressure);
+  lv_label_set_text_fmt(tempLabelIn, "%0.1f°C/%0.1f%%", temperature, humidity);
   lv_refr_now(NULL);
 }
-void filesystem_list_path(const char *path)
+
+void listDir(const char *path)
 {
   lv_fs_dir_t dir;
   lv_fs_res_t res;
+
   res = lv_fs_dir_open(&dir, path);
+
   if (res != LV_FS_RES_OK)
   {
-    Serial.printf("Error opening directory %s\n", path);
+    Serial.println("Error");
+    return;
   }
-  else
+
+  char fn[256];
+  while (1)
   {
-    char fn[256];
-    while (1)
+    res = lv_fs_dir_read(&dir, fn);
+    if (res != LV_FS_RES_OK)
     {
-      res = lv_fs_dir_read(&dir, fn);
-      if (res != LV_FS_RES_OK)
-      {
-        Serial.printf("Directory %s can not be read\n", path);
-        break;
-      }
-
-      /*fn is empty, if not more files to read*/
-      if (strlen(fn) == 0)
-      {
-        Serial.printf("Directory %s listing complete\n", path);
-        break;
-      }
-
-      // LOG_VERBOSE(TAG_LVFS, D_BULLET "%s", fn);
+      Serial.printf("Error opening... %s \n", fn);
+      Serial.println(res);
+      break;
     }
+    if (strlen(fn) == 0)
+    {
+      break;
+    }
+    printf("%s\n", fn);
   }
-
   lv_fs_dir_close(&dir);
 }
 
@@ -206,8 +225,8 @@ void setupHMI()
   tft.setRotation(1);
 
   lv_init();
-
-  lv_disp_buf_init(&draw_buf, buf, NULL, screenWidth * 10);
+  lv_fs_if_init();
+  lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * 10);
 
   /*Initialize the display*/
   static lv_disp_drv_t disp_drv;
@@ -216,22 +235,12 @@ void setupHMI()
   disp_drv.hor_res = screenWidth;
   disp_drv.ver_res = screenHeight;
   disp_drv.flush_cb = my_disp_flush;
-  disp_drv.buffer = &draw_buf;
+  disp_drv.draw_buf = &draw_buf;
 
   lv_disp_drv_register(&disp_drv);
 
   lv_png_init();
-
-  /* Mount SPIFFS */
-  esp_vfs_spiffs_conf_t conf = {
-      .base_path = "/spiffs",
-      .partition_label = NULL,
-      .max_files = 99,
-      .format_if_mount_failed = true};
-
-  esp_vfs_spiffs_register(&conf);
-  size_t total = 0, used = 0;
-  esp_spiffs_info(conf.partition_label, &total, &used);
+  lv_split_jpeg_init();
 
   createHMI();
   // updateTime();
