@@ -1,9 +1,12 @@
 #pragma once
 
 #include <Wire.h>
-#include <SPI.h>
-#include <EEPROM.h>
+#include <SPI.h> // include libraries
 #include <LoRa.h>
+#include <EEPROM.h>
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <WiFi.h>
 
 #define SCK 5   // GPIO5 -- SX127x's SCK
 #define MISO 19 // GPIO19 -- SX127x's MISO
@@ -18,4 +21,5 @@ void updateRoutingTable();
 void getRouteInfoString(char *p, size_t len);
 void printNodeInfo(uint8_t node, char *s);
 void collectRouteData();
-void sendData(String data);
+void sendData(String sendData);
+void timeSync();

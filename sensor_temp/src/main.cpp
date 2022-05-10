@@ -11,6 +11,8 @@
 
 #include "mesh.h"
 
+#include "ESP32Time.h"
+
 #define SDA1 21
 #define SCL1 22
 Adafruit_BMP280 bme; // I2C
@@ -42,7 +44,8 @@ void messureTask();
 
 void setup()
 {
-
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
   Serial.begin(9600);
   while (!Serial)
     ;
@@ -71,7 +74,11 @@ void setup()
   WiFi.mode(WIFI_OFF);
   btStop();
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  timeSync();
+  delay(2000);
   messureTask();
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(2000);
   esp_deep_sleep_start();
 }
 
@@ -79,6 +86,7 @@ void messureTask()
 {
   readSht();
   DynamicJsonDocument doc(1024);
+  doc["cmd"] = "routeData";
   doc["source"] = WiFi.macAddress();
   doc["time"] = getTime();
   doc["battery"] = get_battery();
