@@ -12,23 +12,18 @@ U8G2LOG u8g2log;
 
 Mesh mesh;
 
+unsigned long last;
+
 // assume 4x6 font, define width and height
 #define U8LOG_WIDTH 32
 #define U8LOG_HEIGHT 10
 
-auto timer = timer_create_default();
-
-bool print_message(void *)
-
-{
-  taskSendFifo();
-  return true;
-}
 // allocate memory
 uint8_t u8log_buffer[U8LOG_WIDTH * U8LOG_HEIGHT];
 void setup()
 {
   Serial.begin(9600);
+  Serial.println(ESP.getFreeHeap());
   u8g2.begin();
   u8g2.setFont(u8g2_font_tom_thumb_4x6_mf);
   u8g2log.begin(u8g2, U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
@@ -53,10 +48,16 @@ void setup()
     reconnect();
   }
   u8g2log.println("init successfully");
-  timer.every(1000, print_message);
+  Serial.println(ESP.getFreeHeap());
+  last = millis();
 }
 
 void loop()
 {
-  timer.tick();
+  mesh.taskRec();
+  if (millis() - last >= 1000)
+  {
+    taskSendFifo();
+    last = millis();
+  }
 }

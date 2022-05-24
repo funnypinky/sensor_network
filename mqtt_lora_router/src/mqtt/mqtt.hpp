@@ -7,6 +7,6 @@
 
 bool connect();
 void reconnect();
-void publish(String topic, String message);
+void publish(const char *topic, const char *payload);
 void push2Fifo(String topic, String payload);
 void taskSendFifo();

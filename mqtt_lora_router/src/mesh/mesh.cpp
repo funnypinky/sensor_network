@@ -1,8 +1,12 @@
 #include "mesh.hpp"
+#include <string>
 
 const long frequency = 868E6;
+RH_RF95 driver(18, 26);
+RHReliableDatagram manager(driver, SERVER_ADDRESS);
 
-const int str2Int(String value)
+const int
+str2Int(String value)
 {
     return value.toInt();
 }
@@ -10,9 +14,10 @@ const int str2Int(String value)
 bool Mesh::initMesh(U8G2LOG *u8g2log)
 {
     SPI.begin(5, 19, 27, 18);
-    LoRa.setPins(18, 14, 26);
 
-    if (!LoRa.begin(frequency))
+    // LoRa.setPins(18, 14, 26);
+
+    if (!manager.init())
     {
         u8g2log->println("LoRa init failed. Check your connections.");
         while (true)
@@ -22,84 +27,69 @@ bool Mesh::initMesh(U8G2LOG *u8g2log)
     u8g2log->println();
     u8g2log->println("LoRa Simple Gateway");
     u8g2log->println();
-    LoRa.onReceive(this->onReceive);
-    LoRa.onTxDone(this->onTxDone);
-    this->LoRa_rxMode();
     return true;
 }
-void Mesh::LoRa_rxMode()
+void Mesh::taskRec()
 {
-    LoRa.disableInvertIQ(); // normal mode
-    LoRa.receive();         // set receive mode
-}
+    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+    uint8_t from;
+    if (manager.recvfromAck(buf, &len, &from))
+    {
 
-void Mesh::LoRa_txMode()
-{
-    LoRa.idle();           // set standby mode
-    LoRa.enableInvertIQ(); // active invert I and Q signals
-}
-void Mesh::onTxDone()
-{
-    Serial.println("TxDone");
-    LoRa_rxMode();
-}
-void Mesh::onReceive(int packetSize)
-{
-    String message = "";
+        Serial.print("got reply: ");
+        Serial.println((char *)buf);
+        delay(100);
+        StaticJsonDocument<1024> doc;
+        // Deserialize the JSON document
+        DeserializationError error = deserializeJson(doc, (char *)buf);
 
-    while (LoRa.available())
-    {
-        message += (char)LoRa.read();
-    }
-    delay(100);
-    Serial.print("Gateway Receive: ");
-    DynamicJsonDocument doc(1024);
-    // Deserialize the JSON document
-    DeserializationError error = deserializeJson(doc, message);
-
-    // Test if parsing succeeds.
-    if (error)
-    {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
-        return;
-    }
-    String type = doc["cmd"];
-    if (type == "requestTimeSync")
-    {
-        Serial.println("Request timeSync");
-        sendTimeSync();
-    }
-    else
-    {
-        if (type == "routeData")
+        // Test if parsing succeeds.
+        if (error)
         {
-            String topic = doc["source"];
-            Serial.println("Data routing to mqtt");
-            push2Fifo(topic, message);
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.f_str());
+            return;
+        }
+        String type = doc["cmd"];
+        if (type == "requestTimeSync")
+        {
+            sendTimeSync(from);
         }
         else
         {
-            Serial.println("Unknow data");
+            if (type == "routeData")
+            {
+                String topic = doc["source"];
+                String buf;
+                serializeJson(doc, buf);
+                publish(topic.c_str(), buf.c_str());
+                buf.clear();
+                topic.clear();
+                doc.clear();
+                Serial.println(ESP.getFreeHeap());
+            }
+            else
+            {
+                Serial.println("Unknow data");
+            }
         }
     }
 }
-void Mesh::LoRa_sendMessage(String message)
+void Mesh::LoRa_sendMessage(char *message, int len, uint8_t to)
 {
-    LoRa_txMode();
-    LoRa.beginPacket();   // start packet
-    LoRa.print(message);  // add payload
-    LoRa.endPacket(true); // finish packet and send it
+    manager.sendtoWait((uint8_t *)message, len, to);
 }
-void Mesh::sendTimeSync()
+void Mesh::sendTimeSync(uint8_t to)
 {
-    DynamicJsonDocument doc(1024);
+    StaticJsonDocument<1024> doc;
     doc["cmd"] = "responseTimeSync";
     doc["source"] = WiFi.macAddress();
     doc["syncTime"] = getTime();
-    String buffer;
+    String buffer = "";
     serializeJson(doc, buffer);
-    LoRa_sendMessage(buffer);
+    LoRa_sendMessage((char *)buffer.c_str(), buffer.length(), to);
+    buffer.clear();
 }
 unsigned long Mesh::getTime()
 {

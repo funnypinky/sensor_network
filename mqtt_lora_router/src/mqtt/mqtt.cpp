@@ -24,27 +24,28 @@ void push2Fifo(String topic, String payload)
     item.topic = topic;
     item.payload = payload;
     fifo.push(item);
+    topic.clear();
+    payload.clear();
 }
 
 void taskSendFifo()
 {
+
     while (!fifo.isEmpty())
     {
-        Serial.printf("FiFo size %d \n", fifo.size());
         message item = fifo.first();
-        publish(item.topic, item.payload);
+        Serial.print("topic:");
+        Serial.println(item.topic);
+        Serial.print("payload:");
+        Serial.println(item.payload);
+        publish(item.topic.c_str(), item.payload.c_str());
         fifo.shift();
-        Serial.printf("FiFo size %d \n", fifo.size());
     }
 }
-void publish(String topic, String message)
+void publish(const char *topic, const char *payload)
 {
     reconnect();
-    Serial.print("topic:");
-    Serial.println(topic);
-    Serial.print("payload:");
-    Serial.println(message);
-    client.publish(topic.c_str(), message.c_str());
+    client.publish(topic, payload);
 }
 
 void reconnect()

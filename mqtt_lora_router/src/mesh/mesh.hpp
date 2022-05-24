@@ -1,7 +1,8 @@
 #pragma once
 
 #include <SPI.h> // include libraries
-#include <LoRa.h>
+#include <RHReliableDatagram.h>
+#include <RH_RF95.h>
 #include <U8g2lib.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
@@ -19,12 +20,12 @@ public:
     static void LoRa_rxMode();
     static void LoRa_txMode();
 
-    static void sendTimeSync();
-    static void LoRa_sendMessage(String message);
-    static void route2Mqtt(String topic, String message);
+    static void sendTimeSync(uint8_t to);
+    static void LoRa_sendMessage(char *message, int len, uint8_t to);
+    static void route2Mqtt(const char *topic, const char *message);
     static unsigned long getTime();
+    static void taskRec();
 
 private:
-    static void onReceive(int packetSize);
     static void onTxDone();
 };

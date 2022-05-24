@@ -2,11 +2,15 @@
 
 #include <Wire.h>
 #include <SPI.h> // include libraries
-#include <LoRa.h>
+#include <RHReliableDatagram.h>
+#include <RH_RF95.h>
 #include <EEPROM.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+
+#define CLIENT_ADDRESS 1
+#define SERVER_ADDRESS 2
 
 #define SCK 5   // GPIO5 -- SX127x's SCK
 #define MISO 19 // GPIO19 -- SX127x's MISO
@@ -21,5 +25,7 @@ void updateRoutingTable();
 void getRouteInfoString(char *p, size_t len);
 void printNodeInfo(uint8_t node, char *s);
 void collectRouteData();
-void sendData(String sendData);
+void LoRa_sendMessage(char *message, int len);
+void sendData(char *sendData, int len);
 void timeSync();
+void taskReceive();

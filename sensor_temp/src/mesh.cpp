@@ -2,77 +2,61 @@
 
 const long frequency = 868E6; // LoRa Frequency
 
-void LoRa_rxMode()
+RH_RF95 driver(SS, DI0);
+RHReliableDatagram manager(driver, CLIENT_ADDRESS);
+
+void LoRa_sendMessage(char *message, int len)
 {
-    LoRa.enableInvertIQ(); // active invert I and Q signals
-    LoRa.receive();        // set receive mode
+    manager.sendtoWait((uint8_t *)message, len, SERVER_ADDRESS);
 }
 
-void LoRa_txMode()
+void taskReceive()
 {
-    LoRa.idle();            // set standby mode
-    LoRa.disableInvertIQ(); // normal mode
-}
+    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+    uint8_t from;
 
-void LoRa_sendMessage(String message)
-{
-    LoRa_txMode();        // set tx mode
-    LoRa.beginPacket();   // start packet
-    LoRa.print(message);  // add payload
-    LoRa.endPacket(true); // finish packet and send it
-}
-
-void onReceive(int packetSize)
-{
-    String message = "";
-
-    while (LoRa.available())
+    if (manager.recvfromAckTimeout(buf, &len, 2000, &from))
     {
-        message += (char)LoRa.read();
-    }
 
-    Serial.print("Gateway Receive: ");
-    Serial.println(message);
-    DynamicJsonDocument doc(1024);
-    // Deserialize the JSON document
-    DeserializationError error = deserializeJson(doc, message);
+        Serial.print("Gateway Receive: ");
+        Serial.println((char *)buf);
+        DynamicJsonDocument doc(1024);
+        // Deserialize the JSON document
+        DeserializationError error = deserializeJson(doc, (char *)buf);
 
-    // Test if parsing succeeds.
-    if (error)
-    {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
-        return;
-    }
-    String type = doc["cmd"];
-    if (type == "responseTimeSync")
-    {
-        struct timeval tv;
-        tv.tv_sec = doc["syncTime"]; // epoch time (seconds)
-        tv.tv_usec = 0;              // microseconds
-        settimeofday(&tv, NULL);
+        // Test if parsing succeeds.
+        if (error)
+        {
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.f_str());
+            return;
+        }
+        String type = doc["cmd"];
+        if (type == "responseTimeSync")
+        {
+            struct timeval tv;
+            tv.tv_sec = doc["syncTime"]; // epoch time (seconds)
+            tv.tv_usec = 0;              // microseconds
+            settimeofday(&tv, NULL);
+        }
+        else
+        {
+            Serial.println("Unknow data");
+        }
     }
     else
     {
-        Serial.println("Unknow data");
+        Serial.println("No reply, is rf95_reliable_datagram_server running?");
     }
 }
-
-void onTxDone()
-{
-    Serial.println("TxDone");
-    LoRa_rxMode();
-}
-
 void initMesh()
 {
-
     randomSeed(analogRead(0));
     Serial.begin(9600);
     SPI.begin(SCK, MISO, MOSI, SS);
-    LoRa.setPins(SS, RST, DI0);
 
-    if (!LoRa.begin(frequency))
+    if (!manager.init())
     {
         Serial.println("LoRa init failed. Check your connections.");
         while (true)
@@ -83,18 +67,12 @@ void initMesh()
     Serial.println();
     Serial.println("LoRa Simple Node");
     Serial.println("Only receive messages from gateways");
-    Serial.println("Tx: invertIQ disable");
-    Serial.println("Rx: invertIQ enable");
     Serial.println();
-
-    LoRa.onReceive(onReceive);
-    LoRa.onTxDone(onTxDone);
-    LoRa_rxMode();
 }
 
-void sendData(String sendData)
+void sendData(char *sendData, int len)
 {
-    LoRa_sendMessage(sendData);
+    LoRa_sendMessage(sendData, len);
 }
 
 void timeSync()
@@ -105,5 +83,6 @@ void timeSync()
     doc["source"] = WiFi.macAddress();
     String buffer;
     serializeJson(doc, buffer);
-    sendData(buffer);
+    sendData((char *)buffer.c_str(), buffer.length());
+    taskReceive();
 }

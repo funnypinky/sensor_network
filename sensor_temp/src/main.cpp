@@ -95,8 +95,7 @@ void messureTask()
   doc["pressure"] = pressure;
   String buffer;
   serializeJson(doc, buffer);
-  sendData(buffer);
-  Serial.println(buffer);
+  sendData((char *)buffer.c_str(), buffer.length());
 }
 void loop() {}
 void readSht()
