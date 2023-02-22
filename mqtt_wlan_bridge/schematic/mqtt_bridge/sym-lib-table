@@ -1,0 +1,9 @@
+(sym_lib_table
+  (lib (name "RF_Module")(type "Legacy")(uri "/home/office/Downloads/RF_Module.pretty/RF_Module.lib")(options "")(descr ""))
+  (lib (name "ESP32-footprints-Shem-Lib")(type "Legacy")(uri "/home/office/Downloads/ESP32-Footprints/ESP32-footprints-Shem-Lib.lib")(options "")(descr ""))
+  (lib (name "ESP32-DEVKITC-32D")(type "KiCad")(uri "/home/office/source/kicad_libs/ESP32-DEVKITC-32D/ESP32-DEVKITC-32D.kicad_sym")(options "")(descr ""))
+  (lib (name "SSD1306-128x64_OLED")(type "Legacy")(uri "/home/office/Downloads/KiCad-SSD1306-128x64-0.1/library/SSD1306-128x64_OLED.lib")(options "")(descr ""))
+  (lib (name "Espressif")(type "KiCad")(uri "/home/office/Downloads/kicad-libraries-1.1.0/libraries/Espressif.kicad_sym")(options "")(descr ""))
+  (lib (name "Display_Character")(type "Legacy")(uri "/home/office/source/kicad_libs/kicad-symbols-5.1.10/Display_Character.lib")(options "")(descr ""))
+  (lib (name "Display_Graphic")(type "Legacy")(uri "/home/office/source/kicad_libs/kicad-symbols-5.1.10/Display_Graphic.lib")(options "")(descr ""))
+)

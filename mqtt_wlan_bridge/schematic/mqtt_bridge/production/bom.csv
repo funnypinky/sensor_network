@@ -1,0 +1,5 @@
+Designator,Footprint,Quantity,Value,LCSC Part #
+Brd1,128x64OLED,1,SSD1306,
+J1,SMA_Amphenol_901-144_Vertical,1,Conn_Coaxial,
+U1,HOPERF_RFM9XW_THT,1,RFM95W-868S2,
+U2,ESP32-DevKitC,1,ESP32-DevKitC,

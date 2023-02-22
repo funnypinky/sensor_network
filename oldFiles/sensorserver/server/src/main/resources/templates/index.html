@@ -1,0 +1,86 @@
+<head th:insert="headerAndNav.html :: header">
+</head>
+
+<body>
+  <div th:each="sensor : ${sensors}">
+    <script th:inline="javascript">
+      var real_data = /*[[${sensor.getMacAddress}]]*/[];
+    </script>
+
+    <div class="sensorCard">
+      <div id="myBtn">
+        [[${sensor.displayName}]]
+        <button class="open-button" onclick="openForm()" title="letzen 24h">
+          <img th:src="@{/icons/edit_icon.png}" width="10em" />
+        </button>
+      </div>
+
+      <div class="fb"><progress th:attr="value=${sensor.getBatteryLevel}|" max="100">70 %</progress></div>
+      <div>
+        <span th:text="${#numbers.formatDecimal(sensor.getLastValue.getTemperatur,1, 2)}+' °C'"></span><br>
+        <span th:text="${#numbers.formatDecimal(sensor.getLastValue.getHumidity,1, 2)}+' %'"></span><br>
+        <span th:text="${#numbers.formatDecimal(sensor.getLastValue.getPressure/100,1, 2)}+' hPa'"></span><br>
+      </div>
+    </div>
+
+    <div class="form-popup" id="myForm">
+      <form th:action="@{/}" method="post" class="form-container">
+        <label><b>Sensorname</b></label>
+        <input type="text" th:placeholder="${sensor.displayName}" name="displayName" required>
+        <input type="hidden" th:value="${sensor.getMacAddress}" name="macAddress">
+        <button type="submit" class="btn">Save</button>
+        <button type="button" class="btn cancel" onclick="closeForm()">Abort</button>
+      </form>
+
+    </div>
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+
+        <div id="myPlot"></div>
+        <span class="close">&times;</span>
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+      </div>
+    </div>
+
+    <script>
+      function openForm() {
+        document.getElementById("myForm").style.display = "block";
+      }
+
+      function closeForm() {
+        document.getElementById("myForm").style.display = "none";
+      }
+    </script>
+    <script>
+      // Get the modal
+      var modal = document.getElementById("myModal");
+
+      // Get the button that opens the modal
+      var btn = document.getElementById("myBtn");
+
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+
+      // When the user clicks the button, open the modal 
+      btn.onclick = function () {
+        modal.style.display = "block";
+        drawChart();
+      }
+
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function () {
+        modal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+    </script>
+    <div th:replace="headerAndNav.html :: footer" />
+</body>
