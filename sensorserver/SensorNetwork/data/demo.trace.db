@@ -1,4 +1,0 @@
-2022-05-24 07:11:53 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Tabelle "SENSOR" nicht gefunden (diese Datenbank ist leer)
-Table "SENSOR" not found (this database is empty); SQL statement:
-select sensor0_.id as id1_0_, sensor0_.mac_address as mac_addr2_0_, sensor0_.measure_values as measure_3_0_ from sensor sensor0_ [42104-212]
