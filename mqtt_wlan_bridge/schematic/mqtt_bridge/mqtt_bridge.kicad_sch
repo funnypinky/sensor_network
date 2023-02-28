@@ -4,6 +4,12 @@
 
   (paper "A4")
 
+  (title_block
+    (title "MQTT_WLAN_Bridge")
+    (date "2023-02-23")
+    (rev "1.0")
+  )
+
   (lib_symbols
     (symbol "Connector:Conn_Coaxial" (pin_names (offset 1.016) hide) (in_bom yes) (on_board yes)
       (property "Reference" "J" (id 0) (at 0.254 3.048 0)
@@ -947,7 +953,7 @@
     (property "Value" "Conn_Coaxial" (id 1) (at 123.19 68.8731 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "" (id 2) (at 120.65 67.31 0)
+    (property "Footprint" "Connector_Coaxial:SMA_Amphenol_901-144_Vertical" (id 2) (at 120.65 67.31 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" " ~" (id 3) (at 120.65 67.31 0)
