@@ -17,7 +17,7 @@ class Mesh
 public:
     bool initMesh();
     void sendMessage(String outgoing);
-    bool onReceive(int packetSize);
+    String onReceive(int packetSize);
 
 private:
     void parseString(String toParse);

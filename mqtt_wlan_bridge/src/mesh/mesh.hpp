@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <mqtt/mqtt.hpp>
 #include "display/display.hpp"
+#include "ESP32Time.h"
 
 #define CS 5   // LoRa radio chip select
 #define RST 14 // LoRa radio reset
@@ -20,6 +21,7 @@ public:
     void onReceive(int packetSize);
 
 private:
+    ESP32Time rtc;
     void parseString(String toParse);
     void sendTimeSync();
     unsigned long getTime();

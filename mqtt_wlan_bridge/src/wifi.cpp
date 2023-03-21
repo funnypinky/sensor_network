@@ -11,7 +11,6 @@ bool setupWifi()
     //u8g2log->println("Setup Wifi!");
     //u8g2log->println("AP: MQTT_LoRa_Gateway");
     bool success = manager.autoConnect("MQTT_LoRa_Gateway");
-
     if (!success)
     {
         //u8g2log->println("Failed to connect");

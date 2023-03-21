@@ -3,24 +3,44 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
-// Create a U8g2log object
-U8G2LOG u8g2log;
+U8X8_SH1106_128X64_NONAME_HW_I2C u8x8(U8X8_PIN_NONE);
+//U8X8_SSD1306_128X64_NONAME_HW_I2C u8x8(U8X8_PIN_NONE);
 
-// assume 4x6 font, define width and height
-#define U8LOG_WIDTH 32
-#define U8LOG_HEIGHT 10
-
-// allocate memory
-uint8_t u8log_buffer[U8LOG_WIDTH * U8LOG_HEIGHT];
-
+CircularBuffer<logInfo, 3> infoFifo;
 void initDisplay() {
   Serial.println("\n init Display");
-  u8g2.begin();
-  u8g2.setFont(u8g2_font_squeezed_b7_tr);
+  if(!u8x8.begin()) {
+    Serial.println(F("Display init failed!"));
+    for(;;);
+  }
+  u8x8.clearDisplay();
+  u8x8.setFont(u8x8_font_victoriamedium8_r);
+  }
+
+void writeInfo(int row, const char *info, bool little) {
+    
+    if(little) {
+      u8x8.setFont(u8x8_font_5x7_f);
+    } else {
+      u8x8.setFont(u8x8_font_victoriamedium8_r);
+    }
+    u8x8.clearLine(row);
+    u8x8.drawString(0,row,info);
+}
+void writeDateTime(const char *date, const char *time){
+  int lenDate = u8x8.getUTF8Len(date);
+  int lenTime = u8x8.getUTF8Len(time);
+  u8x8.clearLine(1);
+  u8x8.setCursor(0,0);
+  u8x8.print(date);
+  u8x8.setCursor(u8x8.getCols()-lenTime,0);
+  u8x8.print(time);
 }
 
-void writeInfo(int row, const char *info) {
-  u8g2.drawStr(0,row*7,info);
-  u8g2.sendBuffer();
+void writeLog(logInfo info) {
+  infoFifo.unshift(info);
+  for (decltype(infoFifo)::index_t i = 0; i < infoFifo.size(); i++) {
+    writeInfo(i+3, infoFifo[i].timeStamp.c_str(),true);
+    writeInfo(i+4, infoFifo[i].rssi.c_str(),true);
+}
 }

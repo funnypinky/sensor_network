@@ -37,7 +37,7 @@ void Mesh::onReceive(int packetSize)
     month = local->tm_mon + 1;      // Monat des Jahres abrufen (0 bis 11)
     year = local->tm_year + 1900;
 
-    if (packetSize == 0)
+    if (packetSize == 0 || packetSize > 200)
         return; // if there's no packet, return
 
     String incoming = "";
@@ -50,11 +50,13 @@ void Mesh::onReceive(int packetSize)
     Serial.println("Message: " + incoming);
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
-    String info = "Last packet RSSI: "+String(LoRa.packetRssi()); 
-    char timeInfo[21];
-    snprintf(timeInfo, sizeof(timeInfo),"%02d/%02d/%d", day, month, year);
-    writeInfo(8, info.c_str());
-    writeInfo(9, timeInfo);
+    String info = "RSSI: "+String(LoRa.packetRssi()); 
+    char timeInfo[25];
+    snprintf(timeInfo, sizeof(timeInfo),"%02d/%02d/%d %02d:%02d", day, month, year,hours,minutes);
+    logInfo logInfo;
+    logInfo.timeStamp = String(timeInfo);
+    logInfo.rssi = info;
+    writeLog(logInfo);
     Serial.println();
     parseString(incoming);
 }
@@ -63,10 +65,13 @@ void Mesh::parseString(String toParse)
 {
     DynamicJsonDocument doc(512);
     std::vector<String> measVec = splitString(toParse,';');
+    for(String item : measVec) {
+        Serial.println(item);
+    }
         if (measVec[0] == "data")
         {
             String topic = measVec[1];
-            doc["time"] = getTime();
+            doc["time"] = measVec[7].toInt();
             doc["src"] = measVec[1];
             doc["values"]["battery"] = measVec[2].toDouble();
             doc["values"]["panel"] = measVec[3].toDouble();
@@ -81,6 +86,13 @@ void Mesh::parseString(String toParse)
             topic.clear();
             doc.clear();
             Serial.println(ESP.getFreeHeap());
+        }
+        if(measVec[0] == "reqTime") {
+            String tx;
+            tx += "repTime;";
+            tx += measVec[1]+";";
+            tx += String(getTime()) + ";";
+            sendMessage(tx);
         }
     }
 
@@ -108,7 +120,6 @@ std::vector<String> Mesh::splitString(String string, char delim)
     int index = string.indexOf(delim);
     while (index != -1) {
         returnVector.push_back(temp.substring(0,index));
-        Serial.println(temp.substring(0,index));
         temp = temp.substring(index+1,string.length());
         index = temp.indexOf(delim);
     }

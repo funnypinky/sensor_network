@@ -19,10 +19,10 @@ void Mesh::sendMessage(String outgoing)
     LoRa.endPacket();     // finish packet and send it
 }
 
-bool Mesh::onReceive(int packetSize)
+String Mesh::onReceive(int packetSize)
 {
-    if (packetSize == 0)
-        return false; // if there's no packet, return
+    if (packetSize == 0 || packetSize > 200)
+        return ""; // if there's no packet, return
 
     String incoming = "";
 
@@ -35,5 +35,5 @@ bool Mesh::onReceive(int packetSize)
     Serial.println("RSSI: " + String(LoRa.packetRssi()));
     Serial.println("Snr: " + String(LoRa.packetSnr()));
     Serial.println();
-    return true;
+    return incoming;
 }

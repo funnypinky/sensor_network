@@ -3,9 +3,9 @@
 #include <MS5611.h>
 #include "esp_adc_cal.h"
 #include "WiFi.h"
-
+#include <ESP32Time.h>
 #include <esp_task_wdt.h>
-
+#include <vector>
 #include "mesh.hpp"
 
 #include <Adafruit_ADS1X15.h> // bindet Wire.h für I2C mit ein
@@ -47,6 +47,8 @@ const int potPin = 36;
 int analogBattery = A0;
 int g_vref = 1100;
 
+ESP32Time rtc;
+
 Mesh mesh;
 
 /*Prototypes*/
@@ -56,6 +58,8 @@ void get_battery();
 unsigned long getTime();
 void messureTask();
 float round(float value, int precision);
+void syncTime();
+std::vector<String> splitString(String string, char delim);
 
 void setup()
 {
@@ -76,6 +80,7 @@ void setup()
   Serial.println("init ok");
   
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  syncTime();
   messureTask();
   delay(2000);
   digitalWrite(LED_BUILTIN, LOW);
@@ -103,6 +108,9 @@ void messureTask()
 
     txStr += String(temperature)+";";
     txStr += String(humidity)+";";
+  } else {
+    txStr += ";";
+    txStr += ";";
   }
   if (ms5611.begin())
   {
@@ -110,6 +118,8 @@ void messureTask()
     ms5611.read();
     txStr += String(ms5611.getPressure())+";";
   }
+  txStr += String(rtc.getLocalEpoch())+";";
+  Serial.println(txStr);
   mesh.sendMessage(txStr);
 }
 void loop() {}
@@ -162,4 +172,36 @@ float round(float value, int precision)
 {
   float multiplier = std::pow(10, precision);
   return (float)((int)(value * multiplier + 0.5f)) / multiplier;
+}
+
+void syncTime() {
+  bool timeSync = false;
+  String reqTime;
+  reqTime += "reqTime;";
+  reqTime += WiFi.macAddress()+";";
+  mesh.sendMessage(reqTime);
+  while(!timeSync) {
+    String answer = mesh.onReceive(LoRa.parsePacket());
+    if(answer != "") {
+      std::vector<String> measVec = splitString(answer,';');
+      if(measVec[0] == "repTime") {
+        rtc.setTime(atol(measVec[2].c_str()));
+        Serial.println(rtc.getTime());
+      }
+      timeSync = true;
+    }
+  }
+}
+
+std::vector<String> splitString(String string, char delim) 
+{
+    String temp = string.substring(0, string.length());
+    std::vector<String> returnVector;
+    int index = string.indexOf(delim);
+    while (index != -1) {
+        returnVector.push_back(temp.substring(0,index));
+        temp = temp.substring(index+1,string.length());
+        index = temp.indexOf(delim);
+    }
+    return returnVector;
 }
