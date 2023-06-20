@@ -18,6 +18,7 @@ public:
     bool initMesh();
     void sendMessage(String outgoing);
     String onReceive(int packetSize);
+    void sleep();
 
 private:
     void parseString(String toParse);

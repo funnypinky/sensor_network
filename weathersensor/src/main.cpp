@@ -7,25 +7,26 @@
 #include <esp_task_wdt.h>
 #include <vector>
 #include "mesh.hpp"
+#include <esp32-hal-adc.h>
 
-#include <Adafruit_ADS1X15.h> // bindet Wire.h für I2C mit ein
 #include <cmath>
 #include "math.h"
 
+//I2C PINS
 #define SDA1 21
 #define SCL1 22
 
-MS5611 ms5611(0x76);
+//ADC-PINS
+#define ADC_BAT 36
+#define ADC_PANEL 39
+
+MS5611 ms5611(0x77);
 
 #define SHT31_ADDRESS 0x44
 
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP 120      /* Time ESP32 will go to sleep (in seconds) */
 #define WDT_TIMEOUT 150
-
-Adafruit_ADS1115 ads;
-
-#define ADS_I2C_ADDR 0x48
 
 struct
 {
@@ -66,46 +67,34 @@ void setup()
   //Disable all unused feature
   WiFi.mode(WIFI_OFF);
   btStop();
-
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(25, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
-  digitalWrite(25, HIGH);
   Serial.begin(9600);
   esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);
   Serial.println();
   Serial.println("Temperature sensor measuring start");
-  mesh.initMesh();
-  Serial.println("init ok");
-  
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  if(mesh.initMesh()) {
+    
+  }
   syncTime();
+  Serial.println("init ok");
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
   messureTask();
   delay(2000);
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(25, LOW);
   esp_task_wdt_reset();
   esp_deep_sleep_start();
 }
 
 void messureTask()
 {
-
+  get_battery();
   String txStr;
   txStr += "data;";
   txStr += WiFi.macAddress()+";";
-
-  if (ads.begin())
-  {
-    get_battery();
-    txStr +=String(voltages.battery) +";";
-    txStr += String(voltages.panel)+";";
-  }
+  txStr += String(voltages.battery)+";";
+  txStr += String(voltages.panel)+";";
   if (sht.begin())
   {
     readSht();
-
     txStr += String(temperature)+";";
     txStr += String(humidity)+";";
   } else {
@@ -116,11 +105,13 @@ void messureTask()
   {
     ms5611.setOversampling(OSR_ULTRA_HIGH);
     ms5611.read();
+    Serial.println(ms5611.getDeviceID());
     txStr += String(ms5611.getPressure())+";";
   }
   txStr += String(rtc.getLocalEpoch())+";";
   Serial.println(txStr);
-  mesh.sendMessage(txStr);
+  //mesh.sendMessage(txStr);
+  mesh.sleep();
 }
 void loop() {}
 
@@ -151,15 +142,19 @@ void printHeaterStatus(uint16_t status)
   }
 }
 
+uint32_t readADC_cal(int ADC_Raw) {
+  esp_adc_cal_characteristics_t adc_chars;
+  esp_adc_cal_characterize(ADC_UNIT_1,ADC_ATTEN_11db,ADC_WIDTH_12Bit,1100,&adc_chars);
+  return (esp_adc_cal_raw_to_voltage(ADC_Raw, &adc_chars));
+}
+
 void get_battery()
 {
-  int16_t adc0, adc2;
-  ads.setGain(GAIN_TWOTHIRDS); // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  adc0 = ads.readADC_SingleEnded(0);
-  adc2 = ads.readADC_SingleEnded(2);
+  analogSetClockDiv(8); //Try to increase
 
-  voltages.battery = ads.computeVolts(adc0);
-  voltages.panel = ads.computeVolts(adc2);
+  voltages.battery = (readADC_cal(analogRead(ADC_BAT))/0.192)/1000;
+  voltages.battery = round(voltages.battery,3);
+  voltages.panel = 0;
 }
 unsigned long getTime()
 {

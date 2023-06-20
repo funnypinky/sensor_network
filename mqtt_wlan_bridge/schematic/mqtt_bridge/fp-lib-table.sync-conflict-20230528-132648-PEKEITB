@@ -1,0 +1,9 @@
+(fp_lib_table
+  (lib (name "RF_Module")(type "KiCad")(uri "/home/office/Downloads/RF_Module.pretty")(options "")(descr ""))
+  (lib (name "ESP32-footprints-Lib")(type "KiCad")(uri "/home/office/Downloads/ESP32-Footprints/ESP32-footprints-Lib.pretty")(options "")(descr ""))
+  (lib (name "ESP32-DEVKITC-32D")(type "KiCad")(uri "/home/office/source/kicad_libs/ESP32-DEVKITC-32D")(options "")(descr ""))
+  (lib (name "custom")(type "KiCad")(uri "${KIPRJMOD}/custom.pretty")(options "")(descr ""))
+  (lib (name "Espressif")(type "KiCad")(uri "/home/office/Downloads/kicad-libraries-1.1.0/footprints/Espressif.pretty")(options "")(descr ""))
+  (lib (name "SSD1306")(type "KiCad")(uri "/home/office/Downloads/KiCad-SSD1306-128x64-0.1/library/SSD1306.pretty")(options "")(descr ""))
+  (lib (name "Display")(type "KiCad")(uri "/home/office/source/kicad_libs/kicad-footprints-5.1.10/Display.pretty")(options "")(descr ""))
+)

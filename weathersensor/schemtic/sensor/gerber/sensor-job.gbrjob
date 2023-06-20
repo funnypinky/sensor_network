@@ -5,7 +5,7 @@
       "Application": "Pcbnew",
       "Version": "6.0.2+dfsg-1"
     },
-    "CreationDate": "2023-03-16T17:45:45+01:00"
+    "CreationDate": "2023-05-08T14:40:52+02:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
@@ -14,8 +14,8 @@
       "Revision": "rev?"
     },
     "Size": {
-      "X": 87.0381,
-      "Y": 75.0381
+      "X": 151.0381,
+      "Y": 81.0381
     },
     "LayerNumber": 2,
     "BoardThickness": 1.6,
@@ -27,19 +27,19 @@
       "PadToPad": 0.0,
       "PadToTrack": 0.0,
       "TrackToTrack": 0.127,
-      "MinLineWidth": 0.15,
+      "MinLineWidth": 0.4,
       "TrackToRegion": 0.508,
       "RegionToRegion": 0.508
     }
   ],
   "FilesAttributes": [
     {
-      "Path": "sensor-Front.gbr",
+      "Path": "sensor-F_Cu.gbr",
       "FileFunction": "Copper,L1,Top",
       "FilePolarity": "Positive"
     },
     {
-      "Path": "sensor-Back.gbr",
+      "Path": "sensor-B_Cu.gbr",
       "FileFunction": "Copper,L2,Bot",
       "FilePolarity": "Positive"
     },
@@ -96,19 +96,19 @@
     {
       "Type": "Copper",
       "Thickness": 0.035,
-      "Name": "Front"
+      "Name": "F.Cu"
     },
     {
       "Type": "Dielectric",
       "Thickness": 1.51,
       "Material": "FR4",
-      "Name": "Front/Back",
-      "Notes": "Type: dielectric layer 1 (from Front to Back)"
+      "Name": "F.Cu/B.Cu",
+      "Notes": "Type: dielectric layer 1 (from F.Cu to B.Cu)"
     },
     {
       "Type": "Copper",
       "Thickness": 0.035,
-      "Name": "Back"
+      "Name": "B.Cu"
     },
     {
       "Type": "SolderMask",

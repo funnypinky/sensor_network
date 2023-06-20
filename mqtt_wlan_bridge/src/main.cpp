@@ -6,7 +6,11 @@
 #include "wifi.hpp"
 #include <ESP32Time.h>
 
+#define MY_NTP_SERVER "de.pool.ntp.org"
 
+// choose your time zone from this list
+// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+#define MY_TZ "CET-1CEST,M3.5.0,M10.5.0/3"
 
 ESP32Time rtc;
 Mesh mesh;
@@ -47,7 +51,9 @@ void setup()
     writeInfo(4,"Node not connected");
     reconnect();
   }
-  configTime(3600,0, "de.pool.ntp.org");
+  configTime(0, 0, MY_NTP_SERVER);  // 0, 0 because we will use TZ in the next line
+  setenv("TZ", MY_TZ, 1);            // Set environment variable with your time zone
+  tzset();
   last = millis();
   writeInfo(2,"Status: running");
   t2.enable();

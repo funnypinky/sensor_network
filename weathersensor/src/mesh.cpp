@@ -37,3 +37,7 @@ String Mesh::onReceive(int packetSize)
     Serial.println();
     return incoming;
 }
+
+void Mesh::sleep() {
+    LoRa.sleep();
+}

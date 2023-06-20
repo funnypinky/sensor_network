@@ -1,7 +1,6 @@
 (fp_lib_table
   (lib (name "CN3791")(type "KiCad")(uri "/home/office/source/kicad_libs/CN3791")(options "")(descr ""))
   (lib (name "DW01A")(type "KiCad")(uri "/home/office/source/kicad_libs/DW01A")(options "")(descr ""))
-  (lib (name "ESP32-DEVKITC-32D")(type "KiCad")(uri "/home/office/source/kicad_libs/ESP32-DEVKITC-32D")(options "")(descr ""))
   (lib (name "FS8205")(type "KiCad")(uri "/home/office/source/kicad_libs/FS8205")(options "")(descr ""))
   (lib (name "Inductor_SMD")(type "KiCad")(uri "/home/office/source/kicad_libs/Inductor_SMD.pretty")(options "")(descr ""))
   (lib (name "Sensor_Humidity")(type "KiCad")(uri "/home/office/source/kicad_libs/kicad-footprints-5.1.10/Sensor_Humidity.pretty")(options "")(descr ""))
@@ -135,4 +134,6 @@
   (lib (name "Connector_Samtec_HLE_SMD")(type "KiCad")(uri "/home/office/source/kicad_libs/kicad-footprints-5.1.10/Connector_Samtec_HLE_SMD.pretty")(options "")(descr ""))
   (lib (name "RF")(type "KiCad")(uri "/home/office/source/kicad_libs/kicad-footprints-5.1.10/RF.pretty")(options "")(descr ""))
   (lib (name "MAX17048G")(type "KiCad")(uri "/home/office/source/kicad_libs/MAX17048G")(options "")(descr ""))
+  (lib (name "ESP32-DEVKITC-32D")(type "KiCad")(uri "/home/office/source/kicad_libs/ESP32-DEVKITC-32D")(options "")(descr ""))
+  (lib (name "ESP32-footprints-Lib")(type "KiCad")(uri "/home/office/source/kicad_libs/ESP32-Footprints/ESP32-footprints-Lib.pretty")(options "")(descr ""))
 )

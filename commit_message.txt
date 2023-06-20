@@ -1,5 +1,8 @@
 Start commit message
 
+21.03.2023
+	- create and pcb for weathersensor
+
 22.02.2023
 	- add schematic and pcb for mqtt_wlan_bridge
 	- remove old from git repo

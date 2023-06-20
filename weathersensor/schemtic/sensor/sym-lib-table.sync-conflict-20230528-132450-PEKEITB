@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name "CN3791")(type "KiCad")(uri "/home/office/source/kicad_libs/CN3791/CN3791.kicad_sym")(options "")(descr ""))
+  (lib (name "DW01A")(type "KiCad")(uri "/home/office/source/kicad_libs/DW01A/DW01A.kicad_sym")(options "")(descr ""))
+  (lib (name "FS8205")(type "KiCad")(uri "/home/office/source/kicad_libs/FS8205/FS8205.kicad_sym")(options "")(descr ""))
+)

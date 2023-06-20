@@ -14,6 +14,7 @@ void initDisplay() {
     for(;;);
   }
   u8x8.clearDisplay();
+  u8x8.setFlipMode(1);
   u8x8.setFont(u8x8_font_victoriamedium8_r);
   }
 
