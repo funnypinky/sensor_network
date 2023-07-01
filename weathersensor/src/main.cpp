@@ -25,7 +25,7 @@ MS5611 ms5611(0x77);
 #define SHT31_ADDRESS 0x44
 
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 120      /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP 10      /* Time ESP32 will go to sleep (in seconds) */
 #define WDT_TIMEOUT 150
 
 struct
@@ -111,7 +111,7 @@ void messureTask()
   txStr += String(rtc.getLocalEpoch())+";";
   Serial.println(txStr);
   //mesh.sendMessage(txStr);
-  mesh.sleep();
+  //mesh.sleep();
 }
 void loop() {}
 
@@ -150,10 +150,9 @@ uint32_t readADC_cal(int ADC_Raw) {
 
 void get_battery()
 {
-  analogSetClockDiv(8); //Try to increase
+  analogSetClockDiv(32); //Try to increase
 
   voltages.battery = (readADC_cal(analogRead(ADC_BAT))/0.192)/1000;
-  voltages.battery = round(voltages.battery,3);
   voltages.panel = 0;
 }
 unsigned long getTime()
