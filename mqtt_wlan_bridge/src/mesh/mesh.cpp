@@ -1,26 +1,39 @@
 #include "mesh.hpp"
 
+volatile bool receiveFlag = false;
+
+void setFlag(void);
+
 bool Mesh::initMesh()
 {
-    LoRa.setPins(CS, RST, IRQ); // set CS, reset, IRQ pin
-    if (!LoRa.begin(BAND))
+    int state = loraModule.begin();
+    if (state != RADIOLIB_ERR_NONE)
     { // initialize ratio at 915 MHz
         Serial.println("LoRa init failed. Check your connections.");
         return false;
     }
+    loraModule.setFrequency(FREQUENCY);
     Serial.println("LoRa init succeeded.");
+    loraModule.setPacketReceivedAction(setFlag);
     return true;
+}
+
+void setFlag(void) {
+    receiveFlag = true;
 }
 
 void Mesh::sendMessage(String outgoing)
 {
-    LoRa.beginPacket();   // start packet
-    LoRa.print(outgoing); // add payload
-    LoRa.endPacket();     // finish packet and send it
+   int state = loraModule.transmit(outgoing);
+    if(state == RADIOLIB_ERR_PACKET_TOO_LONG) {
+        Serial.println(F("too long"));
+    }
 }
 
-void Mesh::onReceive(int packetSize)
+void Mesh::onReceive()
 {
+    if(receiveFlag) {
+        receiveFlag = false;
     int hours, minutes, seconds, day, month, year;
      time_t now;
  
@@ -37,20 +50,13 @@ void Mesh::onReceive(int packetSize)
     month = local->tm_mon + 1;      // Monat des Jahres abrufen (0 bis 11)
     year = local->tm_year + 1900;
 
-    if (packetSize == 0 || packetSize > 200)
-        return; // if there's no packet, return
-
-    String incoming = "";
-
-    while (LoRa.available())
-    {
-        incoming = LoRa.readString();
-    }
-    Serial.println("Message length: " + String(packetSize));
+    String incoming;
+    int state = loraModule.readData(incoming);
+    Serial.println("Message length: " + String(incoming.length()));
     Serial.println("Message: " + incoming);
-    Serial.println("RSSI: " + String(LoRa.packetRssi()));
-    Serial.println("Snr: " + String(LoRa.packetSnr()));
-    String info = "RSSI: "+String(LoRa.packetRssi()); 
+    Serial.println("RSSI: " + String(loraModule.getRSSI()));
+    Serial.println("Snr: " + String(loraModule.getSNR()));
+    String info = "RSSI: "+String(loraModule.getRSSI()); 
     char timeInfo[25];
     snprintf(timeInfo, sizeof(timeInfo),"%02d/%02d/%d %02d:%02d", day, month, year,hours,minutes);
     logInfo logInfo;
@@ -59,6 +65,7 @@ void Mesh::onReceive(int packetSize)
     writeLog(logInfo);
     Serial.println();
     parseString(incoming);
+    }
 }
 
 void Mesh::parseString(String toParse)

@@ -62,7 +62,7 @@ void setup()
 }
 void t1Callback()
 {
-  mesh.onReceive(LoRa.parsePacket());
+  mesh.onReceive();
 }
 void t2Callback()
 {
