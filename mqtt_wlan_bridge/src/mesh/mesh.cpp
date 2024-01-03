@@ -70,7 +70,8 @@ void Mesh::parseString(String toParse)
     }
         if (measVec[0] == "data")
         {
-            String topic = measVec[1];
+            MatchState ms;
+            String topic = measVec[1];            
             doc["time"] = measVec[7].toInt();
             doc["src"] = measVec[1];
             doc["values"]["battery"] = measVec[2].toDouble();

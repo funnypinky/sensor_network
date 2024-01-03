@@ -25,7 +25,7 @@ MS5611 ms5611(0x77);
 #define SHT31_ADDRESS 0x44
 
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 10      /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP 110      /* Time ESP32 will go to sleep (in seconds) */
 #define WDT_TIMEOUT 150
 
 struct
@@ -68,18 +68,22 @@ void setup()
   WiFi.mode(WIFI_OFF);
   btStop();
   Serial.begin(9600);
+
   esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);
+  
   Serial.println();
   Serial.println("Temperature sensor measuring start");
-  if(mesh.initMesh()) {
-    
+  
+  if(mesh.initMesh()) {  
   }
   syncTime();
   Serial.println("init ok");
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  
   messureTask();
   delay(2000);
+  mesh.sleep();
   esp_task_wdt_reset();
   esp_deep_sleep_start();
 }
@@ -97,6 +101,7 @@ void messureTask()
     readSht();
     txStr += String(temperature)+";";
     txStr += String(humidity)+";";
+    
   } else {
     txStr += ";";
     txStr += ";";
@@ -110,8 +115,7 @@ void messureTask()
   }
   txStr += String(rtc.getLocalEpoch())+";";
   Serial.println(txStr);
-  //mesh.sendMessage(txStr);
-  //mesh.sleep();
+  mesh.sendMessage(txStr);
 }
 void loop() {}
 
@@ -120,7 +124,6 @@ void readSht()
   sht.read(false);
   temperature = sht.getTemperature();
   sht.heatOn();
-
   while (sht.isHeaterOn())
     ;
 
@@ -153,7 +156,7 @@ void get_battery()
   analogSetClockDiv(32); //Try to increase
 
   voltages.battery = (readADC_cal(analogRead(ADC_BAT))/0.192)/1000;
-  voltages.panel = 0;
+  voltages.panel = (readADC_cal(analogRead(ADC_PANEL))/0.05475)/1000;
 }
 unsigned long getTime()
 {

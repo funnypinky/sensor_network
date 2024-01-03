@@ -7,6 +7,7 @@
 #include <mqtt/mqtt.hpp>
 #include "display/display.hpp"
 #include "ESP32Time.h"
+#include <Regexp.h>
 
 #define CS 5   // LoRa radio chip select
 #define RST 14 // LoRa radio reset
