@@ -1,3 +1,4 @@
 {
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "cmake.sourceDirectory": "/home/office/source/esp/platformio/sensor_network/mqtt_wlan_bridge/.pio/libdeps/nodemcuv2/ArduinoJson/src"
 }

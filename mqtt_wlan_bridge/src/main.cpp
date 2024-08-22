@@ -56,13 +56,14 @@ void setup()
   tzset();
   last = millis();
   writeInfo(2,"Status: running");
+  
   t2.enable();
   t1.enable();
   t3.enable();
 }
 void t1Callback()
 {
-  mesh.onReceive();
+  mesh.onReceive(LoRa.parsePacket());
 }
 void t2Callback()
 {

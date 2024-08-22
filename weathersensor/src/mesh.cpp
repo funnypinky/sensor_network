@@ -1,26 +1,22 @@
 #include "mesh.hpp"
 
-bool receivedFlag = false;
-
 bool Mesh::initMesh()
 {
-    int state = loraModule.begin();
-    if (state != RADIOLIB_ERR_NONE)
-    {
+    LoRa.setPins(CS, RST, IRQ); // set CS, reset, IRQ pin
+    if (!LoRa.begin(BAND))
+    { // initialize ratio at 915 MHz
         Serial.println("LoRa init failed. Check your connections.");
         return false;
     }
-    loraModule.setFrequency(FREQUENCY);
     Serial.println("LoRa init succeeded.");
     return true;
 }
 
 void Mesh::sendMessage(String outgoing)
 {       
-    int state = loraModule.transmit(outgoing);
-    if(state == RADIOLIB_ERR_PACKET_TOO_LONG) {
-        Serial.println(F("too long"));
-    }
+    LoRa.beginPacket();   // start packet
+    LoRa.print(outgoing); // add payload
+    LoRa.endPacket();     // finish packet and send it
 }
 
 String Mesh::onReceive(int packetSize)
@@ -30,60 +26,18 @@ String Mesh::onReceive(int packetSize)
 
     String incoming = "";
 
-    while (loraModule.available())
+    while (LoRa.available())
     {
-        int state = loraModule.readData(incoming);
+        incoming += (char)LoRa.read();
     }
     Serial.println("Message length: " + String(incoming.length()));
     Serial.println("Message: " + incoming);
-    Serial.println("RSSI: " + String(loraModule.getRSSI()));
-    Serial.println("Snr: " + String(loraModule.getSNR()));
+    Serial.println("RSSI: " + String(LoRa.packetRssi()));
+    Serial.println("Snr: " + String(LoRa.packetSnr()));
     Serial.println();
-    loraModule.standby();
-    return incoming;
+        return incoming;
 }
 
 void Mesh::sleep() {
-    loraModule.sleep();
-}
-
-void setFlag(void) {
-    receivedFlag = true;
-}
-
-void Mesh::syncTime() {
-  String reqTime;
-  reqTime += "reqTime;";
-  reqTime += WiFi.macAddress()+";";
-  sendMessage(reqTime);
-  loraModule.setPacketReceivedAction(setFlag);
-  loraModule.startReceive();
-
-  while(!receivedFlag) {
-    receivedFlag = false;
-    String answer;
-    int state = loraModule.readData(answer);
-    if(state == RADIOLIB_ERR_NONE) {
-        if(answer != "") {
-            std::vector<String> measVec = splitString(answer,';');
-            if(measVec[0] == "repTime") {
-            rtc.setTime(atol(measVec[2].c_str()));
-            Serial.println(rtc.getTime());
-        }
-        }
-    }
-  }
-}
-
-std::vector<String> Mesh::splitString(String string, char delim) 
-{
-    String temp = string.substring(0, string.length());
-    std::vector<String> returnVector;
-    int index = string.indexOf(delim);
-    while (index != -1) {
-        returnVector.push_back(temp.substring(0,index));
-        temp = temp.substring(index+1,string.length());
-        index = temp.indexOf(delim);
-    }
-    return returnVector;
+    LoRa.sleep();
 }

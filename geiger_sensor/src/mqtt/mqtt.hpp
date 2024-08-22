@@ -3,7 +3,7 @@
 #include "config_mqtt.hpp"
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <CircularBuffer.h>
+#include <CircularBuffer.hpp>
 
 bool connect();
 void reconnect();
