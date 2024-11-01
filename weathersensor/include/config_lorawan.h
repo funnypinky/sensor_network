@@ -16,11 +16,11 @@ const uint32_t uplinkIntervalSeconds = 2UL * 60UL;    // minutes x seconds
 #define RADIOLIB_LORAWAN_DEV_EUI   0x2cf7f12051000dab
 #endif
 #ifndef RADIOLIB_LORAWAN_APP_KEY   // Replace with your App Key 
-#define RADIOLIB_LORAWAN_APP_KEY   0x37, 0xa8, 0xf1, 0xed, 0xd9, 0x30, 0x05, 0x6b, 0x4d, 0x98, 0xeb, 0x61, 0xf1, 0x20, 0x2d, 0xb5
+#define RADIOLIB_LORAWAN_APP_KEY   0xBA, 0xF9, 0xA7, 0xC3, 0x5A, 0x2F, 0x8A, 0x81, 0x3C, 0x84, 0xD4, 0x52, 0x1E, 0xF0, 0x7D, 0xF2
 
 #endif
 #ifndef RADIOLIB_LORAWAN_NWK_KEY   // Put your Nwk Key here
-#define RADIOLIB_LORAWAN_NWK_KEY  0x46, 0xe1, 0x8c, 0x19, 0x82, 0xf7, 0x8c, 0xd2, 0xb4, 0x21, 0xe9, 0xf7, 0xb9, 0x8e, 0x7d, 0xb5
+#define RADIOLIB_LORAWAN_NWK_KEY  0x81, 0x93, 0xD1, 0x48, 0x3A, 0xD8, 0x7E, 0x58, 0x1E, 0x0C, 0x31, 0x64, 0x04, 0xC9, 0x5E, 0x5F
 #endif
 
 // for the curious, the #ifndef blocks allow for automated testing &/or you can
@@ -105,16 +105,10 @@ String stateDecode(const int16_t result) {
     return "RADIOLIB_ERR_DWELL_TIME_EXCEEDED";
   case RADIOLIB_ERR_CHECKSUM_MISMATCH:
     return "RADIOLIB_ERR_CHECKSUM_MISMATCH";
-  case RADIOLIB_LORAWAN_NO_DOWNLINK:
-    return "RADIOLIB_LORAWAN_NO_DOWNLINK";
   case RADIOLIB_LORAWAN_SESSION_RESTORED:
     return "RADIOLIB_LORAWAN_SESSION_RESTORED";
   case RADIOLIB_LORAWAN_NEW_SESSION:
     return "RADIOLIB_LORAWAN_NEW_SESSION";
-  case RADIOLIB_LORAWAN_NONCES_DISCARDED:
-    return "RADIOLIB_LORAWAN_NONCES_DISCARDED";
-  case RADIOLIB_LORAWAN_SESSION_DISCARDED:
-    return "RADIOLIB_LORAWAN_SESSION_DISCARDED";
   }
   return "See TypeDef.h";
 }

@@ -12,6 +12,8 @@
 #include "math.h"
 #include <RadioLib.h>
 #include <Preferences.h>
+#include "hyt221.h"
+
 Preferences store;
 
 RTC_DATA_ATTR uint16_t bootCount = 0;
@@ -27,6 +29,8 @@ RTC_DATA_ATTR uint8_t LWsession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
 #define ADC_PANEL 39
 
 MS5611 ms5611(0x77);
+
+HYT221 hyt221(0x28);
 
 #define SHT31_ADDRESS 0x44
 
@@ -51,6 +55,7 @@ int analogBattery = A0;
 int g_vref = 1100;
 
 int16_t state = 0;
+
 
 /*Prototypes*/
 int16_t lwActivate();
@@ -86,28 +91,45 @@ void setup()
 
 void messureTask()
 {
-  uint8_t payload[8];
+  uint8_t payload[6];
   get_battery();
   node.setDeviceStatus(voltages.battery);
   if (sht.begin())
   {
     readSht();
-    int tmp = ((int)(temperature * 100)) + 27315;
-    payload[0] = tmp >> 8;
-    payload[1] = tmp;
-    int hum = (int)(humidity * 2);
-    payload[2] = hum;
+    int tmp = ((int)(temperature * 100)) + 5000;
+    payload[0] = highByte(tmp);
+    payload[1] = lowByte(tmp);
+    int hum = (int)(humidity * 10);
+    payload[2] = highByte(hum);
+    payload[3] = lowByte(hum);
+  } else {
+    payload[0] = 0x00;
+    payload[1] = 0x00;
+    payload[2] = 0x00;
+    payload[3] = 0x00;
   }
   if (ms5611.begin())
   {
     ms5611.setOversampling(OSR_ULTRA_HIGH);
     ms5611.read();
     int pre = (int)(ms5611.getPressure() * 10);
-    payload[3] = pre >> 8;
-    payload[4] = pre;
+    payload[4] = highByte(pre);
+    payload[5] = lowByte(pre);
+  } else {
+    payload[4] = 0x00;
+    payload[5] = 0x00;
   }
-
-  node.uplink(payload,4, true);
+  if(hyt221.begin()) {
+    hyt221.read();
+    int tmp = ((int)(hyt221.getTemperature() * 100)) + 5000;
+    payload[0] = highByte(tmp);
+    payload[1] = lowByte(tmp);
+    int hum = (int)(hyt221.getHumidity() * 10);
+    payload[2] = highByte(hum);
+    payload[3] = lowByte(hum);
+  }
+  node.sendReceive(payload, sizeof(payload));
 }
 void loop() {}
 
