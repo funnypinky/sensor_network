@@ -91,9 +91,15 @@ void setup()
 
 void messureTask()
 {
-  uint8_t payload[6];
+  uint8_t payload[10];
   get_battery();
   node.setDeviceStatus(voltages.battery);
+  int battery = (int)(voltages.battery * 100);
+    payload[6] = highByte(battery);
+    payload[7] = lowByte(battery);
+  int panel = (int)(voltages.panel * 10);
+    payload[8] = highByte(panel);
+    payload[9] = lowByte(panel);
   if (sht.begin())
   {
     readSht();
